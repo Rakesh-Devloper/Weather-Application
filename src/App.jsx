@@ -2,13 +2,13 @@ import "./App.css";
 import { useState } from "react";
 import axios from "axios";
 
+
 function App() {
   const [city, setCity] = useState("");
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState([]);
 
-  const API_KEY = "9e1c3dc99dd5a02bcc5e298e104c719e";
-
+const API_KEY = import.meta.env.VITE_API_KEY;
   const getWeather = async () => {
     if (!city.trim()) return;
 
