@@ -1,14 +1,14 @@
 import "./App.css";
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import axios from "axios";
-
 
 function App() {
   const [city, setCity] = useState("");
   const [weather, setWeather] = useState(null);
   const [forecast, setForecast] = useState([]);
 
-const API_KEY = import.meta.env.VITE_API_KEY;
+  const API_KEY = import.meta.env.VITE_API_KEY;
+
   const getWeather = async () => {
     if (!city.trim()) return;
 
@@ -25,19 +25,23 @@ const API_KEY = import.meta.env.VITE_API_KEY;
 
       const daily = forecastRes.data.list.filter((_, i) => i % 8 === 0);
       setForecast(daily);
-
     } catch {
       alert("City not found");
     }
   };
 
-  // ✅ FIXED TYPE
-  const rawType = weather?.weather?.[0]?.main || "default";
-
+  // WEATHER TYPE FIX
+  const rawType = "Snow" || "default";
   const type =
     ["Haze", "Mist", "Fog"].includes(rawType)
       ? "Smoke"
-      : rawType;
+      : rawType.charAt(0).toUpperCase() + rawType.slice(1);
+
+  // ✅ FIX: stable particles (no random jump every render)
+  const smokeParticles = useMemo(() => Array.from({ length: 50 }), []);
+  const rainParticles = useMemo(() => Array.from({ length: 120 }), []);
+  const snowParticles = useMemo(() => Array.from({ length: 120 }), []);
+  const cloudParticles = useMemo(() => Array.from({ length: 35 }), []);
 
   return (
     <div className={`app ${type}`}>
@@ -45,7 +49,7 @@ const API_KEY = import.meta.env.VITE_API_KEY;
       {/* 🌧️ RAIN */}
       {type === "Rain" && (
         <div className="rain-effect">
-          {[...Array(120)].map((_, i) => (
+          {rainParticles.map((_, i) => (
             <span
               key={i}
               className="drop"
@@ -58,17 +62,10 @@ const API_KEY = import.meta.env.VITE_API_KEY;
         </div>
       )}
 
-      {/* ☀️ SUN */}
-      {type === "Clear" && (
-        <div className="sun-effect">
-          <div className="sun"></div>
-        </div>
-      )}
-
       {/* ☁️ CLOUDS */}
       {type === "Clouds" && (
         <div className="cloud-effect">
-          {[...Array(35)].map((_, i) => (
+          {cloudParticles.map((_, i) => (
             <span
               key={i}
               className="cloud"
@@ -86,20 +83,25 @@ const API_KEY = import.meta.env.VITE_API_KEY;
       {/* ❄️ SNOW */}
       {type === "Snow" && (
         <div className="snow-effect">
-          {[...Array(120)].map((_, i) => (
+          {snowParticles.map((_, i) => (
             <span
               key={i}
               className="snow"
-              style={{ left: Math.random() * 100 + "vw" }}
+              style={{
+                left: Math.random() * 100 + "vw",
+                animationDuration: 3 + Math.random() * 5 + "s",
+                width: 3 + Math.random() * 6 + "px",
+                height: 3 + Math.random() * 6 + "px",
+              }}
             />
           ))}
         </div>
       )}
 
-      {/* 🌫️ SMOKE */}
+      {/* 🌫️ SMOKE (FIXED) */}
       {type === "Smoke" && (
         <div className="smoke-effect">
-          {[...Array(50)].map((_, i) => (
+          {smokeParticles.map((_, i) => (
             <span
               key={i}
               className="smoke"
@@ -107,7 +109,7 @@ const API_KEY = import.meta.env.VITE_API_KEY;
                 left: Math.random() * 100 + "vw",
                 width: 60 + Math.random() * 80 + "px",
                 height: 80 + Math.random() * 140 + "px",
-                animationDuration: 5 + Math.random() * 3 + "s",
+                animationDuration: 6 + Math.random() * 4 + "s",
               }}
             />
           ))}
@@ -128,17 +130,14 @@ const API_KEY = import.meta.env.VITE_API_KEY;
 
         {weather && (
           <>
-            {/* 📍 LOCATION */}
             <div className="location">
               <h2>{weather.name}</h2>
               <p>{new Date().toDateString()}</p>
             </div>
 
-            {/* 🌡️ TEMP */}
             <h1>{Math.round(weather.main.temp)}°C</h1>
             <p>{weather.weather[0].main}</p>
 
-            {/* 🔥 WIDGETS */}
             <div className="widgets">
               <div className="widget">
                 🌡️
@@ -165,7 +164,6 @@ const API_KEY = import.meta.env.VITE_API_KEY;
               </div>
             </div>
 
-            {/* 🌅 SUN TIME */}
             <div className="sun-time">
               <div>
                 🌅 {new Date(weather.sys.sunrise * 1000).toLocaleTimeString()}
@@ -177,7 +175,6 @@ const API_KEY = import.meta.env.VITE_API_KEY;
           </>
         )}
 
-        {/* 📊 FORECAST */}
         <div className="forecast">
           {forecast.map((item, i) => {
             const date = new Date(item.dt_txt);
