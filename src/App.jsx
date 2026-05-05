@@ -31,7 +31,7 @@ function App() {
   };
 
   // WEATHER TYPE FIX
-  const rawType = "Snow" || "default";
+ const rawType = weather?.weather?.[0]?.main || "default";
   const type =
     ["Haze", "Mist", "Fog"].includes(rawType)
       ? "Smoke"
